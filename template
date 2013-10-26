@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# filename: template
+
+# dependencies: bash 4.X+ ; vim
+# My personal template macker for programming exercises
+# version 0.1
+
+
+# help
+help () {
+	echo "Usage:"
+	echo ""
+	echo "$(basename $0) -n \"filename\""
+	echo ""
+	echo "-l \"language(python etc..)\""
+	echo ""
+	echo "-h show this help"
+	return 0
+}
+
+# get arguments
+while getopts :hn:l: opt; do
+  case $opt in
+    n)
+      NAME=${OPTARG}
+      ;;
+    l)
+      LANGPRG=$OPTARG
+	  ;;
+    h)
+      help
+	  exit 0
+	  ;;
+    \?)
+      echo "Invalid option: -$OPTARG; try with -h"
+	  exit 1
+      ;;
+    :)
+	  echo "Missing option argument for -$OPTARG"
+	  exit 1
+	  ;;
+	*)
+	  echo "Unimplimented option: -$OPTARG"
+	  exit 1
+	  ;;
+  esac
+done
+
+# default filename: is random for test scripts
+NAME=${NAME-test_$(date | md5sum | head -c3)}
+
+# test mandatory arguments
+if [ "x" == "x$LANGPRG" ]; then
+	echo "-l [option] is required"
+	exit 1
+fi
+
+# declaring an array
+declare -A ABBR
+
+# filling the array with programming languages and extension i use
+ABBR=(["python"]="py"
+		["python2"]="py"
+		["ruby"]="rb"
+		["bash"]="bash"
+		["perl"]="pl"
+		)
+
+# find the lang and extension
+for i in ${!ABBR[@]}; do
+	if [[ $LANGPRG == $i ]]; then
+		export FILE=$NAME.${ABBR[$LANGPRG]}
+	fi
+done
+
+# check the extension passed exist
+if ! [ -n "$FILE" ]; then
+
+	echo "estensione non trovata!"
+	exit 1
+fi
+
+# check if file already exist
+if [[ -f $FILE ]]; then
+	
+	echo "file esistente, usa più immaginazione!"
+	exit 1
+fi
+
+# create file, make it executable, add template
+touch $FILE
+chmod 755 $FILE
+echo -e "#!/usr/bin/env $LANGPRG\n# filename: $FILE\n\n" > $FILE
+# start vim in insert mode on last line
+vim + $FILE -c 'startinsert'
